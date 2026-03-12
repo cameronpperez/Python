@@ -1,2 +1,2 @@
 # Python
-Simple Python Calculator
+All of my Python projects
