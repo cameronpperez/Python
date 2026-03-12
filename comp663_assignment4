@@ -1,0 +1,52 @@
+### Assignment 4 - NYC Pizza
+### Author: Cameron Perez
+
+import pandas as pd
+
+def main():
+    df = pd.read_csv('ny_pizza_dataset.csv') # read csv file
+    rows, cols = df.shape # retrieve number of rows
+    print("Number of rows: ", rows)
+    print("Number of columns: ", cols)
+
+    df = df.rename(columns={"Slice_Price": "Price_Per_Slice"}) # rename column
+    df = df.drop_duplicates() # drop duplicate rows
+    df["Neighborhood"] = df["Neighborhood"].str.lower() # standardize neighborhood to lowercase
+    print(df.head())
+
+    rating_mean = df["Rating"].mean() # get the mean rating
+    rating_mean_rounded = round(rating_mean, 1) # round to 1 decimal place
+    df["Rating"] = df["Rating"].fillna(rating_mean_rounded) # replace missing values with rounded mean
+
+    df["Delivery_Time_Minutes"] = pd.to_numeric(df["Delivery_Time_Minutes"], errors="coerce")
+    delivery_median = df["Delivery_Time_Minutes"].median() # get median delivery time
+    df["Delivery_Time_Minutes"] = df["Delivery_Time_Minutes"].fillna(delivery_median)
+
+    print("Missing values after cleaning: ", df.isnull().sum())
+
+    q1 = df["Price_Per_Slice"].quantile(0.25) # calculating q1 and q3
+    q3 = df["Price_Per_Slice"].quantile(0.75)
+    iqr = q3 - q1
+    lower_bound = q1 - (1.5 * iqr) # calculating lower and upper bounds
+    upper_bound = q3 + (1.5 * iqr)
+
+    outliers = df[(df["Price_Per_Slice"] < lower_bound) | (df["Price_Per_Slice"] > upper_bound)] # identify outliers
+    print("Outlier values in Price_Per_Slice:")
+    print(outliers["Price_Per_Slice"])
+
+    df = df[(df["Price_Per_Slice"] >= lower_bound) & (df["Price_Per_Slice"] <= upper_bound)] # remove outliers
+
+    rows, cols = df.shape
+    print("New DataFrame after removing outliers:")
+    print("Rows: ", rows)
+    print("Cols: ", cols)
+
+if __name__ == "__main__":
+    main()
+
+# Bias Awareness (Assignment Requirement)
+# Removing outliers and replacing missing values can unintentionally introduce bias into the dataset.
+# When we remove outliers, we may also remove uncommon pizza prices, which changes the
+# distribution and can make the data appear more uniform than it really is.
+# As discussed in "Ethical Data Analysis: Avoiding Bias and Ensuring Fairness," cleaning decisions
+# influence the final results and can unintentionally distort insights if not documented.
